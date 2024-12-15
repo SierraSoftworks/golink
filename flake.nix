@@ -22,13 +22,13 @@
         let
           pkgs = nixpkgs.legacyPackages.${prev.system};
         in
-        {
-          golink = pkgs.buildGo122Module {
+        rec {
+          golink = pkgs.buildGo123Module rec {
             pname = "golink";
             version = golinkVersion;
             src = pkgs.nix-gitignore.gitignoreSource [ ] ./.;
 
-            vendorHash = "sha256-WHEc0FdQjPYdexueIlmFUs3dUWQnQ+rBQ3TRIBwET6o="; # SHA based on vendoring go.mod
+            vendorHash = "sha256-oWJaTJaZjLmsfbji1qGS570gPFw8UAawSktWzK8/rYo="; # SHA based on vendoring go.mod
           };
         };
     in

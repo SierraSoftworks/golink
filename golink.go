@@ -62,6 +62,7 @@ var (
 	useHTTPS          = flag.Bool("https", true, "serve golink over HTTPS if enabled on tailnet")
 	snapshot          = flag.String("snapshot", "", "file path of snapshot file")
 	hostname          = flag.String("hostname", defaultHostname, "service name")
+	configDir         = flag.String("config-dir", "", `tsnet configuration directory ("" to use default)`)
 	resolveFromBackup = flag.String("resolve-from-backup", "", "resolve a link from snapshot file and exit")
 	allowUnknownUsers = flag.Bool("allow-unknown-users", false, "allow unknown users to save links")
 )
@@ -176,6 +177,7 @@ func Run() error {
 	// create tsNet server and wait for it to be ready & connected.
 	srv := &tsnet.Server{
 		ControlURL:   *controlURL,
+		Dir:          *configDir,
 		Hostname:     *hostname,
 		Logf:         func(format string, args ...any) {},
 		RunWebClient: true,
@@ -299,7 +301,13 @@ func init() {
 }
 
 var tmplFuncs = template.FuncMap{
+	// go is a template function that returns the hostname of the golink service.
+	// This is used throughout the UI to render links, but does not impact link resolution.
 	"go": func() string {
+		if devMode() {
+			// in dev mode, just use "go" instead of "localhost:8080"
+			return defaultHostname
+		}
 		return *hostname
 	},
 }
@@ -651,7 +659,10 @@ func (e expandEnv) User() (string, error) {
 var expandFuncMap = texttemplate.FuncMap{
 	"PathEscape":  url.PathEscape,
 	"QueryEscape": url.QueryEscape,
+	"TrimPrefix":  strings.TrimPrefix,
 	"TrimSuffix":  strings.TrimSuffix,
+	"ToLower":     strings.ToLower,
+	"ToUpper":     strings.ToUpper,
 	"Match":       regexMatch,
 }
 
